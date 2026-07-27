@@ -89,6 +89,7 @@ class DemandForecast(BaseModel):
     forecasted_demand: int
     trend: str
     period: str
+    unit_cost: Optional[float] = None
 
 class BacklogItem(BaseModel):
     id: str
@@ -119,6 +120,31 @@ class CreatePurchaseOrderRequest(BaseModel):
     unit_cost: float
     expected_delivery_date: str
     notes: Optional[str] = None
+
+class RestockingItem(BaseModel):
+    sku: str
+    name: str
+    quantity: int
+    unit_cost: float
+    total_cost: float
+    trend: Optional[str] = None
+
+class RestockingOrder(BaseModel):
+    id: str
+    order_number: str
+    items: List[RestockingItem]
+    total_cost: float
+    budget: float
+    status: str
+    created_date: str
+    expected_delivery: str
+
+class CreateRestockingOrderRequest(BaseModel):
+    items: List[RestockingItem]
+    budget: float
+
+# In-memory restocking orders store
+restocking_orders_store: list = []
 
 # API endpoints
 @app.get("/")
@@ -303,6 +329,71 @@ def get_monthly_trends():
     result = list(months.values())
     result.sort(key=lambda x: x['month'])
     return result
+
+@app.get("/api/restocking/recommendations")
+def get_restocking_recommendations(budget: float = 100000):
+    """Recommend items to restock within budget, prioritizing increasing demand trend."""
+    candidates = []
+    for forecast in demand_forecasts:
+        sku = forecast["item_sku"]
+        unit_cost = forecast.get("unit_cost", 0)
+        quantity = forecast["forecasted_demand"]
+        candidates.append({
+            "sku": sku,
+            "name": forecast["item_name"],
+            "quantity": quantity,
+            "unit_cost": unit_cost,
+            "total_cost": round(unit_cost * quantity, 2),
+            "trend": forecast["trend"],
+            "current_demand": forecast["current_demand"],
+            "forecasted_demand": forecast["forecasted_demand"],
+        })
+
+    trend_priority = {"increasing": 0, "stable": 1, "decreasing": 2}
+    candidates.sort(key=lambda x: trend_priority.get(x["trend"], 3))
+
+    selected = []
+    remaining = budget
+    for item in candidates:
+        if item["total_cost"] <= remaining:
+            selected.append(item)
+            remaining -= item["total_cost"]
+
+    return {
+        "recommendations": selected,
+        "total_cost": round(sum(r["total_cost"] for r in selected), 2),
+        "remaining_budget": round(remaining, 2),
+        "budget": budget,
+    }
+
+@app.get("/api/restocking/orders", response_model=List[RestockingOrder])
+def get_restocking_orders():
+    """Get all submitted restocking orders."""
+    return restocking_orders_store
+
+@app.post("/api/restocking/orders", response_model=RestockingOrder)
+def create_restocking_order(request: CreateRestockingOrderRequest):
+    """Submit a restocking order within budget."""
+    from datetime import datetime, timedelta
+    import uuid
+
+    total_cost = round(sum(item.total_cost for item in request.items), 2)
+    if total_cost > request.budget:
+        raise HTTPException(status_code=400, detail="Total cost exceeds budget")
+
+    today = datetime.now()
+    order = {
+        "id": str(uuid.uuid4()),
+        "order_number": f"RST-{len(restocking_orders_store) + 1:04d}",
+        "items": [item.model_dump() for item in request.items],
+        "total_cost": total_cost,
+        "budget": request.budget,
+        "status": "Submitted",
+        "created_date": today.strftime("%Y-%m-%d"),
+        "expected_delivery": (today + timedelta(days=14)).strftime("%Y-%m-%d"),
+    }
+    restocking_orders_store.append(order)
+    return order
 
 if __name__ == "__main__":
     import uvicorn

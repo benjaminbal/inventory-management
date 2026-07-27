@@ -1,43 +1,97 @@
 <template>
-  <div class="app">
-    <header class="top-nav">
-      <div class="nav-container">
-        <div class="logo">
-          <h1>{{ t('nav.companyName') }}</h1>
-          <span class="subtitle">{{ t('nav.subtitle') }}</span>
+  <div class="app" :class="{ 'sidebar-collapsed': sidebarCollapsed }">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <div class="logo-title">{{ sidebarCollapsed ? 'FOS' : 'FactoryOS' }}</div>
+          <div class="logo-sub">Inventory Platform</div>
         </div>
-        <nav class="nav-tabs">
-          <router-link to="/" :class="{ active: $route.path === '/' }">
-            {{ t('nav.overview') }}
-          </router-link>
-          <router-link to="/inventory" :class="{ active: $route.path === '/inventory' }">
-            {{ t('nav.inventory') }}
-          </router-link>
-          <router-link to="/orders" :class="{ active: $route.path === '/orders' }">
-            {{ t('nav.orders') }}
-          </router-link>
-          <router-link to="/spending" :class="{ active: $route.path === '/spending' }">
-            {{ t('nav.finance') }}
-          </router-link>
-          <router-link to="/demand" :class="{ active: $route.path === '/demand' }">
-            {{ t('nav.demandForecast') }}
-          </router-link>
-          <router-link to="/reports" :class="{ active: $route.path === '/reports' }">
-            Reports
-          </router-link>
-        </nav>
+        <button class="sidebar-toggle" @click="sidebarCollapsed = !sidebarCollapsed" :title="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"
+            :style="{ transform: sidebarCollapsed ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.25s ease' }">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+        </button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <router-link to="/" :class="{ active: $route.path === '/' }" title="Dashboard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 3h7v7H3zm11 0h7v7h-7zM3 14h7v7H3zm11 3h7v4h-7z"/>
+          </svg>
+          <span class="nav-label">Dashboard</span>
+        </router-link>
+
+        <router-link to="/inventory" :class="{ active: $route.path === '/inventory' }" title="Inventory">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/>
+            <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/>
+          </svg>
+          <span class="nav-label">Inventory</span>
+        </router-link>
+
+        <router-link to="/orders" :class="{ active: $route.path === '/orders' }" title="Orders">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+            <rect x="9" y="3" width="6" height="4" rx="2"/>
+            <path d="M9 12h6M9 16h4"/>
+          </svg>
+          <span class="nav-label">Orders</span>
+        </router-link>
+
+        <router-link to="/spending" :class="{ active: $route.path === '/spending' }" title="Finance">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 6v6l4 2"/>
+          </svg>
+          <span class="nav-label">Finance</span>
+        </router-link>
+
+        <router-link to="/demand" :class="{ active: $route.path === '/demand' }" title="Demand">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+          </svg>
+          <span class="nav-label">Demand</span>
+        </router-link>
+
+        <router-link to="/reports" :class="{ active: $route.path === '/reports' }" title="Reports">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+          <span class="nav-label">Reports</span>
+        </router-link>
+
+        <router-link to="/restocking" :class="{ active: $route.path === '/restocking' }" title="Restocking">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="1 4 1 10 7 10"/>
+            <path d="M3.51 15a9 9 0 102.13-9.36L1 10"/>
+          </svg>
+          <span class="nav-label">Restocking</span>
+        </router-link>
+      </nav>
+
+      <div class="sidebar-footer">
         <LanguageSwitcher />
         <ProfileMenu
           @show-profile-details="showProfileDetails = true"
           @show-tasks="showTasks = true"
         />
       </div>
-    </header>
-    <FilterBar />
-    <main class="main-content">
-      <router-view />
-    </main>
+    </aside>
 
+    <!-- Main content wrapper -->
+    <div class="main-wrapper">
+      <FilterBar />
+      <main class="main-content">
+        <router-view />
+      </main>
+    </div>
+
+    <!-- Modals -->
     <ProfileDetailsModal
       :is-open="showProfileDetails"
       @close="showProfileDetails = false"
@@ -80,6 +134,7 @@ export default {
     const showProfileDetails = ref(false)
     const showTasks = ref(false)
     const apiTasks = ref([])
+    const sidebarCollapsed = ref(false)
 
     // Merge mock tasks from currentUser with API tasks
     const tasks = computed(() => {
@@ -155,7 +210,8 @@ export default {
       tasks,
       addTask,
       deleteTask,
-      toggleTask
+      toggleTask,
+      sidebarCollapsed
     }
   }
 }
@@ -178,92 +234,147 @@ body {
 
 .app {
   display: flex;
-  flex-direction: column;
   min-height: 100vh;
 }
 
-.top-nav {
-  background: #ffffff;
-  border-bottom: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
-  position: sticky;
+/* ── Sidebar ── */
+.sidebar {
+  width: 220px;
+  min-height: 100vh;
+  background: #0f172a;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  left: 0;
   top: 0;
+  bottom: 0;
   z-index: 100;
+  transition: width 0.25s ease;
+  overflow: hidden;
 }
 
-.nav-container {
-  max-width: 1600px;
-  margin: 0 auto;
+.app.sidebar-collapsed .sidebar {
+  width: 60px;
+}
+
+/* Sidebar header / logo */
+.sidebar-header {
+  padding: 20px 16px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: center;
-  padding: 0 2rem;
-  height: 70px;
+  justify-content: space-between;
+  min-height: 72px;
 }
 
-.nav-container > .nav-tabs {
-  margin-left: auto;
-  margin-right: 1rem;
-}
-
-.nav-container > .language-switcher {
-  margin-right: 1rem;
-}
-
-.logo {
-  display: flex;
-  align-items: baseline;
-  gap: 0.75rem;
-}
-
-.logo h1 {
-  font-size: 1.375rem;
+.sidebar-logo .logo-title {
+  color: #f1f5f9;
+  font-size: 16px;
   font-weight: 700;
-  color: #0f172a;
-  letter-spacing: -0.025em;
+  white-space: nowrap;
 }
 
-.subtitle {
-  font-size: 0.813rem;
+.sidebar-logo .logo-sub {
   color: #64748b;
-  font-weight: 400;
-  padding-left: 0.75rem;
-  border-left: 1px solid #e2e8f0;
+  font-size: 11px;
+  white-space: nowrap;
+  margin-top: 2px;
 }
 
-.nav-tabs {
-  display: flex;
-  gap: 0.25rem;
+.app.sidebar-collapsed .sidebar-logo .logo-sub {
+  display: none;
 }
 
-.nav-tabs a {
-  padding: 0.625rem 1.25rem;
+.sidebar-toggle {
+  background: none;
+  border: none;
   color: #64748b;
-  text-decoration: none;
-  font-weight: 500;
-  font-size: 0.938rem;
+  cursor: pointer;
+  padding: 4px;
   border-radius: 6px;
-  transition: all 0.2s ease;
-  position: relative;
+  transition: all 0.15s;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.nav-tabs a:hover {
-  color: #0f172a;
-  background: #f1f5f9;
+.sidebar-toggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f1f5f9;
 }
 
-.nav-tabs a.active {
-  color: #2563eb;
-  background: #eff6ff;
+/* Sidebar nav */
+.sidebar-nav {
+  flex: 1;
+  padding: 12px 0;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
-.nav-tabs a.active::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  right: 0;
-  height: 2px;
+.sidebar-nav a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  color: #94a3b8;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 8px;
+  margin: 2px 8px;
+  transition: all 0.15s;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.sidebar-nav a:hover {
+  color: #f1f5f9;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-nav a.active {
+  color: #fff;
   background: #2563eb;
+}
+
+.sidebar-nav a svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.sidebar-nav .nav-label {
+  transition: opacity 0.2s;
+}
+
+.app.sidebar-collapsed .sidebar-nav .nav-label {
+  opacity: 0;
+  width: 0;
+}
+
+/* Sidebar footer */
+.sidebar-footer {
+  margin-top: auto;
+  padding: 12px 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ── Main content wrapper ── */
+.main-wrapper {
+  flex: 1;
+  margin-left: 220px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: margin-left 0.25s ease;
+}
+
+.app.sidebar-collapsed .main-wrapper {
+  margin-left: 60px;
 }
 
 .main-content {
@@ -274,6 +385,7 @@ body {
   padding: 1.5rem 2rem;
 }
 
+/* ── Global shared styles ── */
 .page-header {
   margin-bottom: 1.5rem;
 }
@@ -300,9 +412,10 @@ body {
 
 .stat-card {
   background: white;
-  padding: 1.25rem;
-  border-radius: 10px;
+  padding: 1.5rem;
+  border-radius: 12px;
   border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
   transition: all 0.2s ease;
 }
 
@@ -343,12 +456,19 @@ body {
   color: #2563eb;
 }
 
+/* Glassmorphic card upgrade */
 .card {
   background: white;
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 1.25rem;
   border: 1px solid #e2e8f0;
   margin-bottom: 1.25rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.2s;
+}
+
+.card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.06);
 }
 
 .card-header {
