@@ -1,5 +1,8 @@
 <template>
-  <div class="app" :class="{ 'sidebar-collapsed': sidebarCollapsed }">
+  <!-- Splash page bypasses the sidebar shell entirely -->
+  <router-view v-if="isSplashRoute" />
+
+  <div v-else class="app" :class="{ 'sidebar-collapsed': sidebarCollapsed }">
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="sidebar-header">
@@ -16,11 +19,11 @@
       </div>
 
       <nav class="sidebar-nav">
-        <router-link to="/" :class="{ active: $route.path === '/' }" title="Dashboard">
+        <router-link to="/dashboard" :class="{ active: $route.path === '/dashboard' }" title="Dashboard">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M3 3h7v7H3zm11 0h7v7h-7zM3 14h7v7H3zm11 3h7v4h-7z"/>
           </svg>
-          <span class="nav-label">Dashboard</span>
+          <span class="nav-label">{{ t('nav.overview') }}</span>
         </router-link>
 
         <router-link to="/inventory" :class="{ active: $route.path === '/inventory' }" title="Inventory">
@@ -28,7 +31,7 @@
             <path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/>
             <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/>
           </svg>
-          <span class="nav-label">Inventory</span>
+          <span class="nav-label">{{ t('nav.inventory') }}</span>
         </router-link>
 
         <router-link to="/orders" :class="{ active: $route.path === '/orders' }" title="Orders">
@@ -37,7 +40,7 @@
             <rect x="9" y="3" width="6" height="4" rx="2"/>
             <path d="M9 12h6M9 16h4"/>
           </svg>
-          <span class="nav-label">Orders</span>
+          <span class="nav-label">{{ t('nav.orders') }}</span>
         </router-link>
 
         <router-link to="/spending" :class="{ active: $route.path === '/spending' }" title="Finance">
@@ -45,14 +48,14 @@
             <circle cx="12" cy="12" r="10"/>
             <path d="M12 6v6l4 2"/>
           </svg>
-          <span class="nav-label">Finance</span>
+          <span class="nav-label">{{ t('nav.finance') }}</span>
         </router-link>
 
         <router-link to="/demand" :class="{ active: $route.path === '/demand' }" title="Demand">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
           </svg>
-          <span class="nav-label">Demand</span>
+          <span class="nav-label">{{ t('nav.demandForecast') }}</span>
         </router-link>
 
         <router-link to="/reports" :class="{ active: $route.path === '/reports' }" title="Reports">
@@ -62,7 +65,7 @@
             <line x1="16" y1="13" x2="8" y2="13"/>
             <line x1="16" y1="17" x2="8" y2="17"/>
           </svg>
-          <span class="nav-label">Reports</span>
+          <span class="nav-label">{{ t('nav.reports') }}</span>
         </router-link>
 
         <router-link to="/restocking" :class="{ active: $route.path === '/restocking' }" title="Restocking">
@@ -70,7 +73,7 @@
             <polyline points="1 4 1 10 7 10"/>
             <path d="M3.51 15a9 9 0 102.13-9.36L1 10"/>
           </svg>
-          <span class="nav-label">Restocking</span>
+          <span class="nav-label">{{ t('nav.restocking') }}</span>
         </router-link>
       </nav>
 
@@ -110,6 +113,7 @@
 
 <script>
 import { ref, onMounted, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { api } from './api'
 import { useAuth } from './composables/useAuth'
 import { useI18n } from './composables/useI18n'
@@ -129,12 +133,16 @@ export default {
     LanguageSwitcher
   },
   setup() {
+    const route = useRoute()
     const { currentUser } = useAuth()
     const { t } = useI18n()
     const showProfileDetails = ref(false)
     const showTasks = ref(false)
     const apiTasks = ref([])
     const sidebarCollapsed = ref(false)
+
+    // Hide sidebar shell on the splash landing page
+    const isSplashRoute = computed(() => route.path === '/splash' || route.path === '/')
 
     // Merge mock tasks from currentUser with API tasks
     const tasks = computed(() => {
@@ -211,7 +219,8 @@ export default {
       addTask,
       deleteTask,
       toggleTask,
-      sidebarCollapsed
+      sidebarCollapsed,
+      isSplashRoute
     }
   }
 }
