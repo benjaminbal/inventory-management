@@ -5,6 +5,39 @@
       <p>{{ t('orders.description') }}</p>
     </div>
 
+    <!-- Submitted Restocking Orders section (only shown when restocking orders exist) -->
+    <div v-if="restockingOrders.length > 0" class="card restocking-orders-card">
+      <div class="card-header">
+        <h3 class="card-title">Submitted Restocking Orders</h3>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Order #</th>
+              <th>Items</th>
+              <th>Total Cost</th>
+              <th>Status</th>
+              <th>Order Date</th>
+              <th>Expected Delivery</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="rOrder in restockingOrders" :key="rOrder.id">
+              <td><strong>{{ rOrder.order_number }}</strong></td>
+              <td>{{ rOrder.items.length }} item{{ rOrder.items.length !== 1 ? 's' : '' }}</td>
+              <td><strong>${{ rOrder.total_cost.toLocaleString() }}</strong></td>
+              <td>
+                <span class="badge info">{{ rOrder.status }}</span>
+              </td>
+              <td>{{ formatDate(rOrder.created_date) }}</td>
+              <td>{{ formatDate(rOrder.expected_delivery) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <div v-if="loading" class="loading">{{ t('common.loading') }}</div>
     <div v-else-if="error" class="error">{{ error }}</div>
     <div v-else>
@@ -96,6 +129,19 @@ export default {
     const error = ref(null)
     const orders = ref([])
 
+    // Restocking orders state
+    const restockingOrders = ref([])
+
+    const loadRestockingOrders = async () => {
+      try {
+        restockingOrders.value = await api.getRestockingOrders()
+      } catch (err) {
+        // Silently handle errors — restocking section is optional
+        console.error('Failed to load restocking orders:', err)
+        restockingOrders.value = []
+      }
+    }
+
     // Use shared filters
     const {
       selectedPeriod,
@@ -153,13 +199,17 @@ export default {
       })
     }
 
-    onMounted(loadOrders)
+    onMounted(() => {
+      loadOrders()
+      loadRestockingOrders()
+    })
 
     return {
       t,
       loading,
       error,
       orders,
+      restockingOrders,
       getOrdersByStatus,
       getOrderStatusClass,
       formatDate,
